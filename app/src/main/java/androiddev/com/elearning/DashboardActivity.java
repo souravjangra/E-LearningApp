@@ -5,21 +5,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.TabLayout;
-import android.support.design.widget.AppBarLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class DashboardAcitivity extends AppCompatActivity {
+public class DashboardActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mToogle;
     private DrawerLayout mDrawerLayout;
     private TextView tv_Name;
@@ -47,21 +41,21 @@ public class DashboardAcitivity extends AppCompatActivity {
                 switch(id)
                 {
                     case R.id.db:
-                        Toast.makeText(DashboardAcitivity.this, "DashBoard",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DashboardActivity.this, "DashBoard",Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.explore:
                         Intent intent;
-                        intent = new Intent(DashboardAcitivity.this,Explore.class);
+                        intent = new Intent(DashboardActivity.this,Explore.class);
                         startActivity(intent);
                         break;
                     case R.id.recommend:
-                        Toast.makeText(DashboardAcitivity.this, "Recommend",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DashboardActivity.this, "Recommend",Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.profile:
-                        Toast.makeText(DashboardAcitivity.this, "Profile", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DashboardActivity.this, "Profile", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.logoutId:
-                        Toast.makeText(DashboardAcitivity.this, "LogOut", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DashboardActivity.this, "LogOut", Toast.LENGTH_SHORT).show();
                         logOut();
                         default:
                         return true;
@@ -76,7 +70,7 @@ public class DashboardAcitivity extends AppCompatActivity {
         String b = sharedPreferences.getString("password", "");
 
         if(a.length()==0 && b.length()==0){
-            Intent intent=new Intent(this,login.class);
+            Intent intent=new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
         }
@@ -97,7 +91,7 @@ public class DashboardAcitivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.clear();
         editor.commit();
-        startActivity(new Intent(this,login.class));
+        startActivity(new Intent(this,LoginActivity.class));
         finish();
     }
 

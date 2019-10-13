@@ -5,4 +5,5 @@
     <color name="white">#ffff</color>
     <color name="darkgray">#6c6c6c</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="BackgroundtWhiteColor">#FFFFFF</color>
 </resources>

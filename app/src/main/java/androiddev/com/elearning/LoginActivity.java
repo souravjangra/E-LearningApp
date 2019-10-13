@@ -2,141 +2,170 @@ package androiddev.com.elearning;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.os.Bundle;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
-    private static final int REQUEST_SIGNUP = 0;
 
-    private EditText emailText, passwordText;
-    private Button loginButton;
-    private TextView signupLink;
+    private EditText emailText,passwordText;
+    private Button signIn,register;
 
+    private String FirstName="",LastName="";
+    public static final String SHARED_PREFS = "sharedPrefs";
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();
+        setContentView(R.layout.activity_login);
+        emailText=(EditText) findViewById(R.id.et_StudentId);
+        passwordText=(EditText) findViewById(R.id.et_Password);
 
-        setContentView(R.layout.activity_login2);
-
-        loginButton = (Button) findViewById(R.id.btn_login);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d( "onClick: ","123");
-            }
-        });
-
-        signupLink = (TextView) findViewById(R.id.link_signup);
-
-        signupLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), SignUpActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                login();
-            }
-        });
-
-        emailText = (EditText) findViewById(R.id.input_email);
-        passwordText = (EditText) findViewById(R.id.input_password);
-
+        signIn = (Button) findViewById(R.id.signinBtn);
+        register = (Button) findViewById(R.id.registerBtn);
 
     }
 
-    public void login() {
-        Log.d(TAG, "login: ");
-
-        if (!validate()) {
+    public void Signin(View view){
+        if(!validateFields()){
             onLoginFailed();
             return;
         }
 
-        loginButton.setEnabled(false);
+        signIn.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
+        final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
+        progressDialog.setMessage("Authenticating user...");
         progressDialog.show();
-
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
+                    @Override
                     public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
                         onLoginSuccess();
-                        // onLoginFailed();
                         progressDialog.dismiss();
                     }
-                }, 3000);
-    }
+                },3000);
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == RESULT_OK) {
 
-                // By default we just finish the Activity and log them in automatically
-                this.finish();
-            }
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // disable going back to the MainActivity
-        moveTaskToBack(true);
     }
 
     public void onLoginSuccess() {
-        loginButton.setEnabled(true);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        startActivity(intent);
-        finish();
+
+        String emailStr=emailText.getText().toString();
+        String passStr=passwordText.getText().toString();
+        checkUser(emailStr,passStr);
+        signIn.setEnabled(true);
     }
 
     public void onLoginFailed() {
         Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
-        loginButton.setEnabled(true);
+        signIn.setEnabled(true);
     }
 
-    public boolean validate() {
-        boolean valid = true;
+    public Boolean validateFields() {
+        boolean validation = true;
 
         String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
+        String pass = passwordText.getText().toString();
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        // email validation
+        if(email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()){
             emailText.setError("enter a valid email address");
-            valid = false;
-        } else {
+            validation = false;
+        }
+        else {
             emailText.setError(null);
         }
 
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            passwordText.setError("between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
+        // password validation
+        if(pass.isEmpty() || pass.length() < 6 || pass.length() > 14) {
+            passwordText.setError("password should be atleast 6 characters long");
+            validation = false;
+        }
+        else {
             passwordText.setError(null);
         }
 
-        return valid;
+        return validation;
     }
+
+    private void storeAndLaunch(String emailStr, String passStr) {
+
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putString("id", emailStr);
+        editor.putString("password", passStr);
+        editor.putString("FirstName",FirstName);
+        editor.putString("LastName",LastName);
+        editor.apply();
+//        Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show();
+
+        Intent intent=new Intent(getApplicationContext(),DashboardActivity.class);
+        startActivity(intent);
+    }
+
+    private void checkUser(final String idstr,final String pdstr) {
+
+
+        FirstName="";
+        LastName="";
+        RequestQueue queue=Volley.newRequestQueue(this);
+        Map<String,String> creds=new HashMap<String,String>();
+        creds.put("Email",idstr);
+        creds.put("Password",pdstr);
+        JSONObject postJson=new JSONObject(creds);
+//        Toast.makeText(this, postJson.toString(), Toast.LENGTH_SHORT).show();
+        String url="https://apj-learning.herokuapp.com/signin";
+
+        JsonObjectRequest objectRequest =new JsonObjectRequest(Request.Method.POST, url, postJson, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+//                result=response;
+                try {
+                    FirstName=response.getString("FirstName");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    LastName=response.getString("LastName");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+//                Toast.makeText(LoginActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                if(FirstName.length()!=0 && LastName.length()!=0){
+                    storeAndLaunch(idstr,pdstr);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+//                Toast.makeText(LoginActivity.this, "Error from Volley", Toast.LENGTH_SHORT).show();
+            }
+        });
+        queue.add(objectRequest);
+    }
+
 }
